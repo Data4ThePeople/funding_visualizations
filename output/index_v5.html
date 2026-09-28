@@ -84,6 +84,7 @@
   #card .body{font:400 19px/1.55 var(--serif);margin:0;max-width:34em}
   .stat{margin-top:18px;padding-top:16px;border-top:1px solid var(--rule);display:grid;gap:4px}
   .stat .num{font:700 36px/1.05 var(--sans);font-variant-numeric:tabular-nums;color:var(--c-ink,var(--ink))}
+  .stat .num .warn{width:.8em;height:.8em;vertical-align:-.08em;margin-right:.2em;color:#E0892B}
   .stat .lab{font:400 15px/1.45 var(--sans)}
   .stat .src{font:400 13px/1.4 var(--sans);color:var(--muted)}
   .take{font:400 17px/1.5 var(--serif);font-style:italic;margin:12px 0 0;padding-left:12px;border-left:2px solid var(--rule);color:#33404C}
@@ -208,7 +209,8 @@
     tool:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M8 13v-2M10.5 13V8M13 13v-3"/>',
     peer:'<circle cx="8" cy="8" r="3"/><path d="M2.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15 12l2 2 4-4"/>',
     net:'<circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><circle cx="12" cy="12.5" r="2.2"/><path d="M12 7.2v3.1M10.2 14l-3.4 2.6M13.8 14l3.4 2.6"/>',
-    flag:'<path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/>'
+    flag:'<path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/>',
+    warn:'<path d="M21.7 18l-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/>'
   };
 
   // Sources used across cards
@@ -236,8 +238,9 @@
     medill:{t:'Northwestern Medill: State of Local News 2025', u:'https://localnewsinitiative.northwestern.edu/projects/state-of-local-news/2025/'},
     dnr:{t:'Reuters Institute: Digital News Report 2026', u:'https://reutersinstitute.politics.ox.ac.uk/digital-news-report/2026/dnr-executive-summary'},
     ng:{t:'NewsGuard AI Tracking Center', u:'https://www.newsguardtech.com/special-reports/ai-tracking-center/'},
+    pewAI:{t:'Pew Research Center: Americans’ views of AI (2026)', u:'https://www.pewresearch.org/short-reads/2026/03/12/key-findings-about-how-americans-view-artificial-intelligence/'},
     d4tp:{t:'Data 4 The People: mission', u:'https://www.data4thepeople.com/'},
-    plan:{t:'Data 4 The People program plan (not yet published)', u:''}
+    plan:{t:'Data 4 The People program plan (not yet published), Contact us for more information at connect@data4thepeople.com', u:'mailto:connect@data4thepeople.com'}
   };
 
   // side = where the card sits relative to the centered node; tag = side of the small label
@@ -245,19 +248,19 @@
   const N = [
     {x:0, y:-330, type:'title', cred:.62},
     {x:0, y:0, icon:'news', cred:.62, side:'r', tag:'l', era:'1830s onward', title:'The printed page',
-     body:'<b>1833</b> | “Penny press” papers like the New York Sun made daily news affordable for ordinary readers.<br><b>1923</b> | The American Society of Newspaper Editors’ Canons of Journalism was widely adopted.',
+     body:'<b>1833</b> | “Penny press” papers like the New York Sun make daily news affordable for ordinary readers.<br><b>1923</b> | The American Society of Newspaper Editors’ Canons of Journalism is widely adopted.',
       take:'The first time news reached a mass audience, filtered by editors and publishers.',
      src:[S.sun, S.canons]},
     {x:0, y:340, icon:'radio', cred:.70, side:'r', tag:'l', era:'1920 onward', title:'News at the speed of sound',
-     body:'<b>1920</b> | On November 2nd Pittsburgh’s KDKA broadcast the Harding–Cox presidential election returns. <br> <b>1933</b> | President Roosevelt began speaking to the whole nation through radio “fireside chats,” which lasted through World War II.',
+     body:'<b>1920</b> | On November 2nd Pittsburgh’s KDKA broadcasts the Harding–Cox presidential election returns. <br> <b>1933</b> | President Roosevelt begins speaking to the whole nation through radio “fireside chats,” which lasts through World War II.',
      src:[S.kdka, S.fdr]},
     {x:0, y:680, icon:'tv', cred:.74, side:'r', tag:'l', era:'1950s to 1980s', title:'Television took over',
-     body:'Advertising made news highly profitable: newspapers averaged annual returns above 12% in the second half of the century.',
+     body:'Advertising makes news highly profitable: newspapers average annual returns above 12% in the second half of the century.',
      take:'The picture was partial and filtered by a few gatekeepers, but most Americans saw the same one.',
      stat:{num:'9% → 87%', lab:'of U.S. households had a TV, 1950 to 1960', src:'Nielsen / TVB'},
      src:[S.tvb, S.returns]},
     {x:0, y:1020, icon:'wifi', big:true, cred:.55, side:'tr', tag:'l', era:'1990s', title:'The internet changes everything',
-     body:'<b>1991</b> | Tim Berners-Lee announced the World Wide Web on public internet newsgroups in August. <br> <b>1992</b> | Considered a reliable service, used mostly by scientists. <br><b>1993</b> | Makes it to the public domain and the easy-to-use Mosaic browser arrived. <br><b>1994</b> | Public use grows to 10 million users.',
+     body:'<b>1991</b> | Tim Berners-Lee announces the World Wide Web on public internet newsgroups in August. Initially, scientists are the primary users. <br><b>1993</b> | Makes it to the public domain and the easy-to-use Mosaic browser arrives. <br><b>1994</b> | Public use grows to 10 million users.',
      take:'For the first time, anyone could publish to the world without a printing press or a broadcast license.',
      src:[S.cern]},
     {x:340, y:1340, icon:'pen', cred:.46, side:'tr', tag:'l', era:'Late 1990s to 2000s', title:'Anyone can publish anything',
@@ -265,7 +268,7 @@
      take:'There was no editor or ethics code standing between a post and its readers.',
      src:[S.blogger, S.pew06]},
     {x:680, y:1660, icon:'social', cred:.30, side:'tr', tag:'l', era:'2004 onward', title:'Social media boom',
-     body:'<b>2004</b> | Facebook launched, followed by YouTube and Twitter, turning every user into a potential publisher. On Twitter, false stories spread farther than true ones.',
+     body:'<b>2004</b> | Facebook launches, followed by YouTube and Twitter, turning every user into a potential publisher. On Twitter, false stories spread farther than true ones.',
      stat:{num:'70%', lab:'more likely to be retweeted: false news versus true news, in a study of about 126,000 Twitter stories from 2006 to 2017', src:'Science (2018)'},
      src:[S.fb, S.science]},
     {x:1020, y:1980, icon:'mega', cred:.20, side:'tr', tag:'l', era:'2008 onward', title:'Reach becomes the business model',
@@ -273,13 +276,13 @@
      take:'Follower counts, not standards, decide who gets heard and who gets paid.',
      stat:{num:'21%', lab:'of U.S. adults regularly get news from news influencers. 77% of those influencers have no news-organization background.', src:'Pew Research Center'},
      src:[S.hund, S.ftc09, S.ftc23, S.ftc, S.pewInf]},
-    {x:1360, y:2300, icon:'decline', cred:.22, side:'tr', tag:'l', era:'2005 to today', title:'The newsroom gets squeezed',
-     body:'<b>2016</b> | U.S. newspaper ad revenue fell to $18 billion, nearly a third of its level a decade earlier.',
+    {x:1360, y:2300, icon:'decline', cred:.22, side:'tr', tag:'l', era:'2005 to today', title:'The disappearing newsrooms',
+     body:'<b>2016</b> | U.S. newspaper ad revenue falls to $18 billion, nearly a third of its level a decade earlier.',
      stat:{num:'7,325 → 4,490', lab:'U.S. newspapers, 2005 to 2025. Newspaper jobs fell from about 365,000 to about 92,000.', src:'Northwestern Medill'},
      src:[S.pewAds, S.medill]},
-    {x:1700, y:2620, icon:'robot', big:true, cred:.08, side:'tr', tag:'l', era:'2023 onward', title:'Is anyone even there?',
+    {x:1700, y:2620, icon:'robot', big:true, cred:.08, side:'tr', tag:'l', era:'2023 onward', title:'Bots: beyond belief',
      body:'<b>2023</b> | NewsGuard begins tracking AI content farms churning out articles with little human oversight. <br><b>2026</b> | Worldwide, 10% of people get their news from AI chatbots.',
-     take:'The question is no longer only “is this true?” but “did a person even make this?”',
+     take:'The question is no longer only “is this true?” but “did a person even create this?”',
      stat:[{num:'20%', lab:'trust news answers from AI chatbots, versus 37% for news overall', src:'Reuters Institute'},
            {num:'49 → 3,000+', lab:'unreliable AI-generated news sites, May 2023 to March 2026', src:'NewsGuard'}],
      src:[S.dnr, S.ng]},
@@ -288,11 +291,12 @@
      take:'We can stay on this path: more polarization, more paid influence, less shared truth. Or we can choose a different one.',
      stat:{num:'28%', lab:'of Americans trust the mass media, down from 68% in 1972', src:'Gallup, 2025'},
      src:[S.gallup25, S.gallup70]},
-    {x:2380, y:2620, icon:'sprout', bright:true, cred:.82, side:'br', tag:'l', era:'Data 4 The People', title:'Forward, not back',
+    {x:2380, y:2620, icon:'sprout', bright:true, cred:.82, side:'br', tag:'l', era:'Data 4 The People', title:'A fix for the AI age',
      body:'People haven’t given up on the ideal: 45% worldwide still prefer news that doesn’t take sides, more than twice the share who want news that shares their view.',
-     take:'We can’t change how we got here, but the fix has to be built for the AI age.',
-     src:[S.dnr, S.d4tp]},
-    {x:2720, y:2300, icon:'tool', bright:true, cred:.88, side:'br', tag:'l', era:'The tools', title:'AI-assisted research',
+     take:'We can’t change how we got here, the fix has to be built for the AI age.',
+     stat:{num:'50%', warn:true, lab:'of U.S. adults are more concerned than excited about AI in daily life, up from 37% in 2021. Just 10% are more excited than concerned.', src:'Pew Research Center, 2025'},
+     src:[S.dnr, S.pewAI, S.d4tp]},
+    {x:2720, y:2300, icon:'tool', bright:true, cred:.88, side:'br', tag:'l', era:'The tools', title:'Empower citizen data journalists',
      body:'Tools that help anyone find and analyze public data, turning a curious question into a documented, sourced finding in a fraction of the usual time.',
      src:[S.d4tp]},
     {x:3060, y:1980, icon:'peer', bright:true, cred:.93, side:'br', tag:'l', era:'The standard', title:'Mentors check the work',
@@ -389,24 +393,26 @@
   function placeCard(n){
     Object.assign(card.style,{left:'',right:'',top:'',bottom:'',transform:'',maxHeight:'',width:''});
     if (narrow) return;
-    const off = (38 + 26) * scale + 12;
+    // The pulse ring (.dot::after) is an 84px box scaling to 1.9 → 80px max radius in world px;
+    // the same horizontal gap on every side keeps the card clear of it at any vertical position.
+    const off = 80 * scale + 14;
     const w = Math.max(300, Math.min(420, cx - off - 110));
     card.style.width = w + 'px';
-    if (n.side === 'r'){ card.style.left = (cx+off)+'px'; card.style.top = cy+'px'; card.style.transform='translateY(-50%)'; card.style.maxHeight=(H-120)+'px'; }
-    if (n.side === 'l'){ card.style.right = (W-cx+off)+'px'; card.style.top = cy+'px'; card.style.transform='translateY(-50%)'; card.style.maxHeight=(H-120)+'px'; }
-    if (n.side === 'tr' || n.side === 'tl'){
-      // the diagonal line leaves at 45 degrees, so a tall card can drop below center if it also moves sideways
-      const h = card.offsetHeight, room = cy - 24, extra = Math.max(0, Math.min(h - room, H - cy - 90));
-      const x = Math.min(off - 12 + extra, n.side === 'tr' ? W - 16 - w - cx : cx - 110 - w);
-      if (n.side === 'tr') card.style.left = (cx + x)+'px'; else card.style.right = (W - cx + x)+'px';
-      card.style.bottom = (H - cy - 14 - extra)+'px'; card.style.maxHeight = (cy + extra - 10)+'px';
-    }
-    if (n.side === 'br' || n.side === 'bl'){
-      // mirror of the above: card hangs below the node; if too tall it rises and moves sideways
-      const h = card.offsetHeight, room = H - cy - 90, extra = Math.max(0, Math.min(h - room, cy - 24));
-      const x = Math.min(off - 12 + extra, n.side === 'br' ? W - 16 - w - cx : cx - 110 - w);
-      if (n.side === 'br') card.style.left = (cx + x)+'px'; else card.style.right = (W - cx + x)+'px';
-      card.style.top = (cy - 14 - extra)+'px'; card.style.maxHeight = (room + extra)+'px';
+    if (n.side.includes('r')) card.style.left = (cx + off)+'px'; else card.style.right = (W - cx + off)+'px';
+    if (n.side === 'r' || n.side === 'l'){
+      card.style.top = cy+'px'; card.style.transform = 'translateY(-50%)'; card.style.maxHeight = (H-120)+'px';
+    } else {
+      card.style.maxHeight = (H - 114)+'px';
+      const h = card.offsetHeight;
+      if (n.side === 'tr' || n.side === 'tl'){
+        // bottom edge just below center; a tall card slides down only as far as needed to fit above
+        const bottom = Math.min(Math.max(cy + 14, h + 24), H - 90);
+        card.style.bottom = (H - bottom)+'px';
+      } else { // br, bl
+        // top edge just above center; a tall card slides up only as far as needed to clear the controls
+        const top = Math.max(Math.min(cy - 14, H - 90 - h), 24);
+        card.style.top = top+'px';
+      }
     }
   }
   function cardHTML(n){
@@ -414,7 +420,7 @@
     if (n.take) h += `<p class="take"><span>Our read</span>${n.take}</p>`;
     const stats = [].concat(n.stat || []);
     if (stats.length) h += `<div class="stats${stats.length > 1 ? ' two' : ''}">` + stats.map(st =>
-      `<div class="stat"><span class="num">${st.num}</span><span class="lab">${st.lab}</span><span class="src">Source: ${st.src}</span></div>`).join('') + `</div>`;
+      `<div class="stat"><span class="num">${st.warn ? `<svg class="warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Warning">${ICON.warn}</svg>` : ''}${st.num}</span><span class="lab">${st.lab}</span><span class="src">Source: ${st.src}</span></div>`).join('') + `</div>`;
     if (n.src) h += `<p class="sources"><span>Sources</span>` + n.src.map(x => x.u
       ? `<a href="${x.u}" target="_blank" rel="noopener">${x.t}</a>` : `<em>${x.t}</em>`).join('<i> · </i>') + `</p>`;
     if (n.cta) h += `<div class="cta">
