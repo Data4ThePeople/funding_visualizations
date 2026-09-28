@@ -30,19 +30,19 @@ The timeline is a single path. The current step always sits in the center of the
 | 0 | Title: *Who do you trust for the news?* | |
 | 1 | The printed page | 1830s onward |
 | 2 | News at the speed of sound (radio) | 1920 onward |
-| 3 | One evening broadcast (television) | 1950s–1980s |
+| 3 | Television took over | 1950s–1980s |
 | 4 | The internet changes everything | 1990s |
-| 5 | Everyone gets a printing press (blogs) | Late 1990s–2000s |
-| 6 | Blogs on steroids (social media) | 2004 onward |
-| 7 | Reach becomes the business model (influencers) | 2010s onward |
+| 5 | Anyone can publish anything (blogs) | Late 1990s–2000s |
+| 6 | Social media boom | 2004 onward |
+| 7 | Reach becomes the business model (influencers) | 2008 onward |
 | 8 | The newsroom gets squeezed | 2005–today |
-| 9 | Is anyone even there? (AI) | 2022 onward |
+| 9 | Is anyone even there? (AI) | 2023 onward |
 | 10 | Where we are now | Today |
 | 11 | Forward, not back | Data 4 The People |
 | 12 | AI-assisted research | The tools |
 | 13 | Mentors check the work | The standard |
 | 14 | A network of curious creators | The community |
-| 15 | See it for yourself (links to our sites) | Join us |
+| 15 | Logo and links to our sites | |
 
 ## Sources and transparency
 
