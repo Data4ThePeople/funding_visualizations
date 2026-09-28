@@ -2,7 +2,7 @@
 
 An interactive, single-page timeline from **Data 4 The People** that traces how Americans lost a shared set of facts, from the penny press to AI-generated news, and shows the path we're building to earn that trust back.
 
-It was built as the visual backbone of a short (about 7-minute) presentation on our vision, work and goals. It also works on its own as a shareable web page.
+It was built as the visual backbone of a short presentation on our vision, work, and goals. It also works on its own as a shareable web page.
 
 ## Purpose
 
@@ -51,7 +51,7 @@ Every factual claim is sourced, as you'd expect from a data journalism organizat
 - **Each card ends with a Sources line** of clickable links, and the **Sources** button collects every source in one list.
 - **Lines marked "Our read"** are Data 4 The People's interpretation, kept visually separate from sourced facts.
 - **Main sources:** Gallup, Pew Research Center, the Reuters Institute *Digital News Report 2026*, Northwestern Medill's *State of Local News 2025*, NewsGuard, CERN, Nielsen via TVB, the Vosoughi, Roy & Aral study in *Science* (2018), and the FDR Presidential Library.
-- **One source is our own:** the "Mentors check the work" card cites the Data 4 The People program plan, which is not yet published. Replace it with a public link once one exists.
+- **One source is our own:** the "Mentors check the work" card cites the Data 4 The People program plan, which is not yet published. The link now opens the default email app on the user's device to write to connect@data4thepeople.com.
 
 Statistics reflect the sources as of September 2026. The Reuters Institute figures are global (48 markets), not U.S.-only; the cards say "worldwide" where that applies.
 
@@ -75,7 +75,7 @@ Most presentation clickers send arrow or Page Down keys, so they work out of the
 
 ## Presenting
 
-The timeline takes about 3.5–4 minutes at roughly 15 seconds per step. That leaves about 3 minutes of a 7-minute slot for live demos of the two sites linked on the final step. If you run long, the easiest cuts are to merge the blogs and social media steps, or the tools and mentors steps.
+The timeline takes about 3.5–4 minutes at roughly 15 seconds per step. This is meant as a short intro before the live demos of the two sites linked on the final step. If you run long, the easiest cuts are to merge the blogs and social media steps, or the tools and mentors steps.
 
 ## Running and deploying
 
