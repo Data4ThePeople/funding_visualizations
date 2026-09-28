@@ -38,8 +38,8 @@ The timeline is a single path. The current step always sits in the center of the
 | 8 | The newsroom gets squeezed | 2005–today |
 | 9 | Is anyone even there? (AI) | 2023 onward |
 | 10 | Where we are now | Today |
-| 11 | Forward, not back | Data 4 The People |
-| 12 | AI-assisted research | The tools |
+| 11 | A fix for the AI age | Data 4 The People |
+| 12 | Empower citizen data journalists | The tools |
 | 13 | Mentors check the work | The standard |
 | 14 | A network of curious creators | The community |
 | 15 | Logo and links to our sites | |
@@ -79,17 +79,39 @@ The timeline takes about 3.5–4 minutes at roughly 15 seconds per step. This is
 
 ## Running and deploying
 
-The whole visualization is one self-contained file, `index.html`. The code, styling and logo are all inside it, and there is no build step and no server code.
+The whole visualization is one self-contained file, `output/index_final.html`; rename it `index.html` when deploying. The code, styling and logo are all inside it, and there is no build step and no server code.
 
-- **Locally:** open `index.html` in any modern browser.
+- **Locally:** open `output/index_final.html` in any modern browser.
 - **GitHub Pages:**
-  1. Put `index.html` at the top level of the repository (or in `/docs`).
+  1. Put the file, renamed `index.html`, at the top level of the repository (or in `/docs`).
   2. In the repository, go to **Settings → Pages**, choose the branch (and folder), and save.
   3. The page goes live at `https://<user-or-org>.github.io/<repo>/`, usually within a minute or two.
 
 GitHub Pages is free for public repositories; private repositories need a paid plan. After an update, force-refresh (Ctrl+Shift+R, or Cmd+Shift+R on a Mac) if you don't see the change.
 
 **External requests:** the page loads the fonts Newsreader and Public Sans from Google Fonts, with fallbacks if they're unavailable. Everything else is built into the file.
+
+## Layout checks
+
+The `output/checks/` folder holds three small test pages. They load `index_final.html` in a frame, step through it, and measure where the card, the icon, and the buttons land. They are development tools only; the visualization does not need them to run or deploy.
+
+- **`check.html`** measures the desktop and landscape layouts. For each step it reports the gap between the card and the icon, whether the pulse ring stays clear of the card, and whether the card is fully on screen. Add `?w=740&h=360` to the address to test an exact size.
+- **`check_narrow.html`** measures the portrait phone layout (the bottom-sheet card). It reports whether the title screen fits, whether the sheet covers the active icon or the buttons, and which cards scroll inside the sheet. It defaults to 360x740; use `?w=390&h=844` for another size.
+- **`shot.html`** shows one step at an exact size, for screenshots: `shot.html?w=360&h=740&s=7`.
+
+Browsers block these measurements on pages opened straight from disk, so serve the repository first:
+
+```bash
+python -m http.server 8741
+```
+
+Then open, for example, `http://localhost:8741/output/checks/check.html`. Each check page prints one line starting with `RESULTS=` when it finishes, with one JSON entry per step. The same pages also run headless:
+
+```bash
+chrome --headless=new --virtual-time-budget=30000 --window-size=1920,1080 --dump-dom http://localhost:8741/output/checks/check.html | grep RESULTS=
+```
+
+The check pages copy a few layout constants from the main file (the 820px width switch, the scale steps, the 80px pulse-ring radius) and point at `../index_final.html`. If those constants change, or the file is renamed, update the check pages to match.
 
 ## Editing the content
 

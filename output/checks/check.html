@@ -1,0 +1,46 @@
+<!doctype html><meta charset="utf-8"><title>Layout check: desktop and landscape</title><body style="margin:0">
+<iframe id="f" style="position:fixed;inset:0;width:100vw;height:100vh;border:0"></iframe>
+<pre id="out"></pre>
+<script>
+// Measures the card against the centered icon for steps 1-15 of the visualization.
+// Open with ?w=<px>&h=<px> to test an exact viewport size; without it, the window size is used.
+// Serve the repo over HTTP first (file:// is blocked): python -m http.server 8741
+// then open http://localhost:8741/output/checks/check.html in a browser, or run headless:
+// chrome --headless=new --virtual-time-budget=30000 --window-size=1920,1080 --dump-dom <that URL> | grep RESULTS=
+const SRC = '../index_final.html';
+const q = new URLSearchParams(location.search);
+if (q.get('w')) Object.assign(document.getElementById('f').style, {inset:'auto', left:0, top:0, width:q.get('w')+'px', height:q.get('h')+'px'});
+function load(step){
+  return new Promise(res => {
+    const f = document.getElementById('f');
+    f.src = SRC + '?v=' + step + '#' + step;   // query busts the fragment-only "no reload" behavior
+    (function poll(){   // iframe onload can fire for about:blank first, so wait for the real document
+      let ok = false;
+      try { const w = f.contentWindow;
+        ok = w.location.search === '?v=' + step && w.document.readyState === 'complete' && w.document.getElementById('card'); } catch(e){}
+      if (ok) setTimeout(() => res(f), 80); else setTimeout(poll, 40);
+    })();
+  });
+}
+(async () => {
+  const results = [];
+  for (let s = 1; s <= 15; s++){
+    const f = await load(s);
+    const w = f.contentWindow;
+    const r = w.document.getElementById('card').getBoundingClientRect();
+    const W = w.innerWidth, H = w.innerHeight;
+    // Keep these constants in sync with layout() and the pulse ring in index_v5.html
+    const scale = (W < 820 && H >= W) ? .58 : (H < 520 ? .55 : H < 760 ? .82 : 1);
+    const cx = W/2, ring = 80*scale;
+    const onRight = r.left > cx;
+    const gap = onRight ? r.left - cx : cx - r.right;
+    results.push({s, side: onRight ? 'R' : 'L', gap: +gap.toFixed(1), ring: +ring.toFixed(1),
+      clearsRing: gap >= ring, h: Math.round(r.height),
+      top: Math.round(r.top), bottom: Math.round(r.bottom),
+      left: Math.round(r.left), right: Math.round(r.right),
+      inView: r.top >= 0 && r.bottom <= H && r.left >= 0 && r.right <= W, W, H});
+  }
+  document.getElementById('out').textContent = 'RESULTS=' + JSON.stringify(results);
+  document.title = 'DONE';
+})();
+</script>

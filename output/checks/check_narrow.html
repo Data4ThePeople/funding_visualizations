@@ -1,0 +1,53 @@
+<!doctype html><meta charset="utf-8"><title>Layout check: portrait phone</title><body style="margin:0;overflow:hidden">
+<iframe id="f" style="position:fixed;left:0;top:0;border:0"></iframe>
+<pre id="out"></pre>
+<script>
+// Measures the portrait phone layout (bottom-sheet card) for steps 0-15.
+// Open with ?w=<px>&h=<px> for an exact phone size, e.g. ?w=360&h=740 (default).
+// Serve the repo over HTTP first (file:// is blocked): python -m http.server 8741
+// then open http://localhost:8741/output/checks/check_narrow.html?w=360&h=740 in a browser, or run headless:
+// chrome --headless=new --virtual-time-budget=30000 --window-size=900,1000 --dump-dom "<that URL>" | grep RESULTS=
+const SRC = '../index_final.html';
+const q = new URLSearchParams(location.search);
+const FW = +q.get('w') || 360, FH = +q.get('h') || 740;
+Object.assign(document.getElementById('f').style, {width: FW+'px', height: FH+'px'});
+function load(step){
+  return new Promise(res => {
+    const f = document.getElementById('f');
+    f.src = SRC + '?v=' + step + '#' + step;
+    (function poll(){   // iframe onload can fire for about:blank first, so wait for the real document
+      let ok = false;
+      try { const w = f.contentWindow;
+        ok = w.location.search === '?v=' + step && w.document.readyState === 'complete' && w.document.getElementById('card'); } catch(e){}
+      if (ok) setTimeout(() => res(f), 80); else setTimeout(poll, 40);
+    })();
+  });
+}
+(async () => {
+  const results = [];
+  for (let s = 0; s <= 15; s++){
+    const f = await load(s);
+    const w = f.contentWindow, d = w.document;
+    const W = w.innerWidth, H = w.innerHeight;
+    const hero = d.getElementById('hero').getBoundingClientRect();
+    const card = d.getElementById('card').getBoundingClientRect();
+    const ctl = d.getElementById('controls').getBoundingClientRect();
+    // Keep in sync with layout() in index_v5.html: portrait narrow puts the icon at 30% height, scale .58
+    const cy = H * .3, ring = 80 * .58;
+    const r = {s, W, H};
+    if (s === 0){
+      r.heroTop = Math.round(hero.top); r.heroBottom = Math.round(hero.bottom);
+      r.heroClipped = hero.top < 0 || hero.bottom > H;
+    } else {
+      r.cardTop = Math.round(card.top); r.cardBottom = Math.round(card.bottom);
+      r.cardH = Math.round(card.height);
+      r.nodeClear = Math.round(card.top - (cy + ring));   // >0: active icon and ring fully above the sheet
+      r.cardCtlGap = Math.round(ctl.top - card.bottom);   // >0: sheet does not cover the controls
+      r.scrolls = d.getElementById('card').scrollHeight > d.getElementById('card').clientHeight;
+    }
+    results.push(r);
+  }
+  document.getElementById('out').textContent = 'RESULTS=' + JSON.stringify(results);
+  document.title = 'DONE';
+})();
+</script>

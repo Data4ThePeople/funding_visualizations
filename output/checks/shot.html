@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>Screenshot helper</title><body style="margin:0;background:#888">
+<iframe id="f" style="position:fixed;left:0;top:0;border:0"></iframe>
+<script>
+// Loads one step at an exact size, for screenshots: shot.html?w=360&h=740&s=7
+const q = new URLSearchParams(location.search);
+const f = document.getElementById('f');
+f.style.width = (+q.get('w') || 360) + 'px';
+f.style.height = (+q.get('h') || 740) + 'px';
+f.src = '../index_final.html?v=' + (q.get('s') || 0) + '#' + (q.get('s') || 0);
+</script>
