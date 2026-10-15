@@ -95,7 +95,7 @@ GitHub Pages is free for public repositories; private repositories need a paid p
 
 `talk/index.html` is a presenter's scene for live talks. It opens with an analogy, hands off to the timeline, and comes back for the close.
 
-Each person is a house on stilts in open water. The house is their sense of what is real, and the water is the noise. Houses built on rotting wood fall as the storm grows, new wood wears down, and steel rusts but stands. After the timeline, the survivors are reinforced and the fallen houses are rebuilt on steel.
+Each person is a house on stilts in open water. The house is their sense of what is real, and the water is the noise. Houses built on rotting wood fall as the storm grows, new wood wears down, and steel rusts but stands. Half of the 40 houses are rotten and fall. Each one shakes, a stilt snaps, the house drops and tips over, the roof tears off, and it hits the water with a splash and a spreading ring of foam. When a house near the front falls, the screen shakes. After the timeline, the survivors are reinforced and the fallen houses are rebuilt on steel.
 
 **Address:** `https://data4thepeople.github.io/funding_visualizations/talk/`
 

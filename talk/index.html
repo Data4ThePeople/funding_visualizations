@@ -213,7 +213,7 @@
   const houses = [];
   // Three large houses up front so the room can read the difference: steel, rotten, new wood
   [[.2,.84,'steel'],[.53,.93,'rotten'],[.83,.86,'new']].forEach(([x,z,t]) => houses.push(makeHouse(x,z,t)));
-  const bag = [...Array(11).fill('rotten'), ...Array(14).fill('new'), ...Array(12).fill('steel')];
+  const bag = [...Array(19).fill('rotten'), ...Array(9).fill('new'), ...Array(9).fill('steel')];
   for (let i = bag.length - 1; i > 0; i--){ const j = Math.floor(R()*(i+1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
   // Place the rest without heavy overlap, measured on a 1920x1080 reference frame
   const refS = z => .16 + 1.3*pz(z), refY = z => pz(z)*.64*1080;
@@ -238,10 +238,10 @@
     const hero = houses[1];
     hero.fallStage = 4; hero.fallDelay = 10;
     const rot = houses.filter(h => h.type === 'rotten' && h !== hero).sort(() => R() - .5);
-    [5,13,21].forEach((d, i) => { if (rot[i]){ rot[i].fallStage = 3; rot[i].fallDelay = d; } });
-    rot.slice(3, rot.length - 2).forEach((h, i, a) => { h.fallStage = 4;
-      h.fallDelay = 3 + i*(27/Math.max(1, a.length - 1)) + rr(-1,1); if (Math.abs(h.fallDelay - 10) < 2) h.fallDelay += 3; });
-    rot.slice(-2).forEach((h, i) => { h.fallStage = 5; h.fallDelay = [4,11][i]; });
+    [4,9,14,19,25].forEach((d, i) => { if (rot[i]){ rot[i].fallStage = 3; rot[i].fallDelay = d; } });
+    rot.slice(5, rot.length - 3).forEach((h, i, a) => { h.fallStage = 4;
+      h.fallDelay = 2 + i*(28/Math.max(1, a.length - 1)) + rr(-.8,.8); if (Math.abs(h.fallDelay - 10) < 2.5) h.fallDelay += 3.5; });
+    rot.slice(-3).forEach((h, i) => { h.fallStage = 5; h.fallDelay = [3,8,14][i]; });
   })();
 
   function rebuildAsSteel(h){
@@ -269,15 +269,20 @@
   const debris = [], splashes = [];
   function spawnSplash(h){
     const s = scl(h.z), X = h.x*W + h.dir*h.bw*.35*s, Y = baseY(h.z) - surgeOff(s);
-    splashes.push({z:h.z + .001, born:clock, parts:Array.from({length:60}, () => ({
-      x:X + mr(-.5,.5)*h.bw*s, y:Y, vx:mr(-1,1)*120*s + h.dir*40*s, vy:-mr(80,320)*s, r:mr(.8,1.8)*s + .6})), g:520*s});
+    splashes.push({z:h.z + .001, born:clock, X, Y, s, g:520*s,
+      parts:Array.from({length:150}, () => ({x:X + mr(-.6,.6)*h.bw*s, y:Y, vx:mr(-1,1)*170*s + h.dir*70*s,
+        vy:-mr(120,520)*s, r:mr(.8,2.2)*s + .6})),
+      mist:Array.from({length:26}, () => ({x:X + mr(-.6,.6)*h.bw*s, y:Y, vx:mr(-1,1)*60*s + h.dir*30*s,
+        vy:-mr(60,200)*s, r:mr(6,16)*s}))});
+    if (h.z > .55) shake = Math.max(shake, .6 + (h.z - .55)*2.5);
   }
   function spawnDebris(h){
     const cols = [h.bodyC, h.roofC, ROT];
-    for (let i = 0; i < 7; i++) debris.push({z:clamp(h.z + mr(-.008,.012), 0, .999), x:h.x + mr(-.5,.5)*h.bw*scl(h.z)/W,
-      vx:mr(-.004,.004), len:mr(18,50), w:mr(3.5,6), rot:mr(-.4,.4), ph:mr(0,6), col:cols[i % 3], house:h, fadeAt:null});
+    for (let i = 0; i < 13; i++) debris.push({z:clamp(h.z + mr(-.008,.012), 0, .999), x:h.x + mr(-.5,.5)*h.bw*scl(h.z)/W,
+      vx:mr(-.005,.005), len:i < 2 ? mr(50,80) : mr(16,48), w:i < 2 ? mr(8,14) : mr(3.5,6), rot:mr(-.4,.4), ph:mr(0,6), col:cols[i % 3], house:h, fadeAt:null});
   }
   const DROPS = Array.from({length:1100}, () => ({x:Math.random()*1.2, y:Math.random(), v:mr(.9,1.4), l:mr(.015,.03)}));
+  let shake = 0;
   let flash = 0, bolt = null, lastStrike = -10, flashAgain = null;
   const clouds = Array.from({length:16}, (_, i) => ({x:Math.random()*1.4 - .2, y:mr(.02,.3), rx:mr(.12,.3), ry:mr(.03,.07), sp:mr(.6,1.4), i}));
 
@@ -316,7 +321,9 @@
       src.connect(fl); fl.connect(g); g.connect(this.master); src.start(t, Math.random()*2); src.stop(t + dur + .1);
     },
     thunder(){ const d = mr(.3,1.6); this.burst(3.8, 'lowpass', 150, .9, .08, d); this.burst(1.2, 'lowpass', 700, .25, .02, d); },
-    crash(s){ const k = Math.min(1, s); this.burst(1.4, 'bandpass', 900, .35*k, .01); this.burst(2.4, 'lowpass', 220, .55*k, .05); }
+    creak(s){ const k = Math.min(1, s); this.burst(1.1, 'bandpass', 260, .22*k, .3); this.burst(.9, 'bandpass', 520, .1*k, .2, .3); },
+    snap(s){ const k = Math.min(1, s); this.burst(.25, 'highpass', 1400, .5*k, .005); this.burst(.6, 'lowpass', 300, .5*k, .01); },
+    crash(s){ const k = Math.min(1, s); this.burst(1.6, 'bandpass', 900, .45*k, .01); this.burst(3, 'lowpass', 200, .75*k, .05); this.burst(2.2, 'highpass', 2500, .25*k, .1, .15); }
   };
 
   // ---------- Stages ----------
@@ -365,9 +372,11 @@
       if (h.rust < h.rustT) h.rust = Math.min(h.rustT, h.rust + .016*h.wr*dt);
       if (h.fallAt !== null && !h.gone && !h.rebuilt){
         const e = clock - h.fallAt;
-        if (e > 1.3){
-          h.fp = Math.min(1, (e - 1.3)/3.4);
-          if (h.fp > .42 && !h.splashed){ h.splashed = true; spawnSplash(h); spawnDebris(h); snd.crash(scl(h.z)); }
+        if (e > .7 && !h.creaked){ h.creaked = true; snd.creak(scl(h.z)); }
+        if (e > 1.6 && !h.snapped){ h.snapped = true; snd.snap(scl(h.z)); }
+        if (e > 1.9){
+          h.fp = Math.min(1, (e - 1.9)/2.8);
+          if (h.fp > .4 && !h.splashed){ h.splashed = true; spawnSplash(h); spawnDebris(h); snd.crash(scl(h.z)); }
           if (h.fp >= 1) h.gone = true;
         }
       }
@@ -382,15 +391,16 @@
       if (d.fadeAt !== null && clock - d.fadeAt > 2.5) debris.splice(i, 1);
     }
     for (let i = splashes.length - 1; i >= 0; i--){
-      const sp = splashes[i]; if (clock - sp.born > 1.8){ splashes.splice(i, 1); continue; }
+      const sp = splashes[i]; if (clock - sp.born > 3){ splashes.splice(i, 1); continue; }
       sp.parts.forEach(p => { p.vy += sp.g*dt; p.x += p.vx*dt; p.y += p.vy*dt; });
+      sp.mist.forEach(p => { p.vy += sp.g*.25*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.r += 10*sp.s*dt; });
     }
     const windX = .25*P.wind;
     DROPS.forEach(d => { d.y += d.v*dt*1.1; d.x -= windX*d.v*dt*1.1;
       if (d.y > 1.05){ d.y -= 1.1; d.x = Math.random()*1.25; } if (d.x < -.1) d.x += 1.3; });
     clouds.forEach(c => { c.x += .004*c.sp*(1 + P.wind*6)*dt; if (c.x - c.rx > 1.1) c.x = -c.rx - .1; });
     // Lightning
-    flash = Math.max(0, flash - dt*2.6);
+    flash = Math.max(0, flash - dt*2.6); shake = Math.max(0, shake - dt*1.6);
     if (flashAgain !== null && clock >= flashAgain){ flash = .8; flashAgain = null; }
     if (P.lt > .08 && clock - lastStrike > 2.2 && Math.random() < P.lt*dt*.4){
       lastStrike = clock; flash = 1; flashAgain = clock + mr(.12,.22);
@@ -403,6 +413,13 @@
   // ---------- Draw ----------
   let amb = .6, horC = SKY.calm.hor;
   function draw(){
+    ctx.save();
+    if (shake > .01){ const k = shake*shake*H/1080;
+      ctx.translate(W/2, H/2); ctx.scale(1 + .012*shake, 1 + .012*shake); ctx.translate(-W/2 + mr(-1,1)*7*k, -H/2 + mr(-1,1)*5*k); }
+    drawScene();
+    ctx.restore();
+  }
+  function drawScene(){
     amb = Math.min(1.25, (SKY.calm.amb + (SKY.dawn.amb - SKY.calm.amb)*P.md)*(1 - P.ms) + SKY.storm.amb*P.ms + flash*.5);
     horC = mood('hor');
     // Sky
@@ -488,9 +505,17 @@
     ctx.restore();
   }
   function drawSplash(sp){
-    const a = clamp(1 - (clock - sp.born)/1.8);
-    ctx.fillStyle = `rgba(228,236,240,${a*.85})`; ctx.beginPath();
-    sp.parts.forEach(p => { ctx.moveTo(p.x + p.r, p.y); ctx.arc(p.x, p.y, p.r, 0, 6.29); }); ctx.fill();
+    const age = clock - sp.born, a = clamp(1 - age/2), s = sp.s;
+    // Foam ring spreading across the water
+    const rx = (40 + age*120)*s, ra = clamp(1 - age/3)*.6;
+    ctx.strokeStyle = `rgba(232,238,240,${ra})`; ctx.lineWidth = Math.max(1, 3*s*(1 - age/3));
+    ctx.beginPath(); ctx.ellipse(sp.X, sp.Y, rx, rx*.16, 0, 0, 6.29); ctx.stroke();
+    ctx.fillStyle = `rgba(232,238,240,${ra*.25})`; ctx.beginPath(); ctx.ellipse(sp.X, sp.Y, rx*.7, rx*.11, 0, 0, 6.29); ctx.fill();
+    // Mist, then spray
+    ctx.fillStyle = `rgba(220,228,234,${a*.16})`; ctx.beginPath();
+    sp.mist.forEach(p => { ctx.moveTo(p.x + p.r, p.y); ctx.arc(p.x, p.y, p.r, 0, 6.29); }); ctx.fill();
+    ctx.fillStyle = `rgba(232,238,242,${a*.9})`; ctx.beginPath();
+    sp.parts.forEach(p => { if (p.y > sp.Y + 20*s) return; ctx.moveTo(p.x + p.r, p.y); ctx.arc(p.x, p.y, p.r, 0, 6.29); }); ctx.fill();
   }
 
   function drawHouse(h){
@@ -505,18 +530,23 @@
     const frag = rotten ? 1 : wood ? (.3 + .9*worn)*(1 - .7*rf) : (h.rebuilt ? .04 : .07 + .08*rust);
     let ang = h.lean0*(1 - rf) + (wood ? h.dir*worn*.055 : 0);
     ang += (Math.sin(clock*1.5 + h.phase)*.03 + Math.sin(clock*3.3 + h.phase*1.7)*.012)*I*frag;
-    let dx = 0, sink = 0;
+    let dx = 0, sink = 0, kick = 0, roofOff = 0;
     const falling = h.fallAt !== null && !h.rebuilt && clock > h.fallAt;
     if (falling){
       const e = clock - h.fallAt;
-      if (e < 1.3) ang += Math.sin(e*38)*.025*e;
-      const f = easeIn(h.fp); ang += h.dir*f*1.45;
-      sink = Math.pow(h.fp, 1.7)*(h.sh + h.bh + 90); dx = h.dir*f*30;
+      // Shaking that builds, then a stilt snaps and the house drops and lurches
+      ang += Math.sin(e*34)*.03*Math.min(e, 1.9);
+      const lurch = 1 - Math.pow(1 - clamp((e - 1.6)/.25), 3);
+      ang += h.dir*lurch*.16; sink += lurch*26; kick = h.dir*lurch*.6;
+      // Then it goes over, faster and faster, and the roof tears off
+      const f = easeIn(h.fp); ang += h.dir*f*1.5;
+      sink += Math.pow(h.fp, 1.6)*(h.sh + h.bh + 110); dx = h.dir*f*40;
+      roofOff = clamp((h.fp - .2)/.8);
     }
     // Window light
     let lt = rotten ? .4*(Math.sin(clock*7 + h.flick) > .6 ? .5 : 1) : 1;
     if (wood && worn > .5 && Math.sin(clock*11 + h.flick) + Math.sin(clock*3.1 + h.flick*2) > 1.4) lt = .15;
-    if (falling && clock - h.fallAt > .6) lt = 0;
+    if (falling){ const e = clock - h.fallAt; lt = e > 1.6 ? 0 : (Math.sin(e*29 + h.flick) > .2 ? lt : 0); }
     lt *= 1 - .55*P.md;
     // Build progress, for rebuilt houses
     const b = h.b, sb = clamp(b/.3), pb = clamp((b - .28)/.12), bb = clamp((b - .4)/.32), rb = clamp((b - .72)/.18);
@@ -532,7 +562,7 @@
     const sw = steel ? 8 : wood ? 7 : 6;
     ctx.fillStyle = sh(stC);
     for (let i = 0; i < ns; i++){
-      ctx.save(); ctx.translate(sx(i), top); ctx.rotate(h.jit[i]);
+      ctx.save(); ctx.translate(sx(i), top); ctx.rotate(h.jit[i] + (i === (h.dir > 0 ? ns - 1 : 0) ? kick : 0));
       if (i === h.brokenIdx){ ctx.beginPath(); ctx.moveTo(-sw/2, 0); ctx.lineTo(sw/2, 0); ctx.lineTo(sw/2, L*.42);
         ctx.lineTo(0, L*.48); ctx.lineTo(-sw/2, L*.4); ctx.closePath(); ctx.fill(); }
       else ctx.fillRect(-sw/2, L - L*sb, sw, L*sb);
@@ -605,7 +635,9 @@
     }
     // Roof
     if (rb > 0){
-      ctx.save(); ctx.translate(0, bt); ctx.scale(1, rb);
+      ctx.save(); ctx.translate(0, bt);
+      if (roofOff){ ctx.translate(h.dir*roofOff*90, -Math.sin(roofOff*Math.PI)*40 + roofOff*roofOff*60); ctx.rotate(h.dir*roofOff*1.1); }
+      ctx.scale(1, rb);
       let rc = h.roofC; if (steel) rc = mix(rc, RUST, rust*.45); if (wood) rc = mix(rc, GREY, worn*.5);
       const e = bw/2 + 9, rh = h.rh;
       ctx.fillStyle = sh(rc); ctx.beginPath();
