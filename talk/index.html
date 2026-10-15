@@ -39,6 +39,21 @@
     color:var(--muted);transition:opacity 1.2s ease;text-align:center;padding:0 16px}
   #hint.off{opacity:0}
 
+  #end{position:fixed;inset:0;z-index:3;display:grid;place-items:center;padding:16px;
+    background:rgba(8,12,16,.35);opacity:0;pointer-events:none;transition:opacity 1.4s ease}
+  #end.on{opacity:1;pointer-events:auto}
+  #end .card{background:#fff;color:#18222D;border-radius:6px;padding:34px 36px 30px;width:min(520px,100%);
+    text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+  #end img{display:block;width:100%;max-width:400px;height:auto;margin:0 auto 22px}
+  #end p{font:400 19px/1.45 var(--sans);margin:0 0 22px}
+  #end .cta{display:grid;gap:12px;text-align:left}
+  #end .cta a{display:block;padding:15px 18px;border-radius:4px;text-decoration:none;
+    background:#0FA958;color:#fff;font:700 18px var(--sans)}
+  #end .cta a small{display:block;font:400 15px var(--sans);opacity:.9;margin-top:3px}
+  #end .cta a.alt{background:#fff;color:#18222D;border:2px solid #18222D}
+  #end .cta a:hover{filter:brightness(1.06)}
+  #end .cta a:focus-visible{outline:3px solid #18222D;outline-offset:3px}
+  body.idle #end.on{cursor:default}
   #help{position:fixed;inset:0;z-index:6;display:none;place-items:center;background:rgba(0,0,0,.6);padding:16px}
   #help.on{display:grid}
   #help .box{background:#10161c;border:1px solid var(--line);border-radius:6px;padding:22px 26px;max-width:560px;width:100%;
@@ -54,6 +69,16 @@
 <canvas id="scene" aria-label="Houses on stilts in rising water. Weak houses fall as the storm grows; strong ones stand." role="img"></canvas>
 <iframe id="timeline" title="Who do you trust for the news? timeline" src="../output/index_final.html#0"></iframe>
 <div id="black"></div>
+<div id="end" aria-hidden="true">
+  <div class="card">
+    <img src="d4tp-logo.png" alt="Data 4 The People" width="900" height="139">
+    <p>See where we’re headed next, and what’s live today.</p>
+    <div class="cta">
+      <a href="https://labs.data4thepeople.com/" target="_blank" rel="noopener">Explore where we’re headed<small>labs.data4thepeople.com</small></a>
+      <a class="alt" href="https://www.data4thepeople.com/" target="_blank" rel="noopener">Explore Data 4 The People<small>data4thepeople.com</small></a>
+    </div>
+  </div>
+</div>
 
 <div id="hud">
   <button id="hPrev" aria-label="Previous stage">‹</button>
@@ -83,7 +108,7 @@
       <li>Surge: most rotten houses fall, new wood wears, steel rusts</li><li>Aftermath</li>
       <li><i>Timeline: the clicker drives it, and the last step returns here</i></li>
       <li>The storm eases</li><li>Survivors get reinforced</li><li>Fallen houses are rebuilt on steel</li>
-      <li>The noise returns, and every house holds</li><li>Fade to black</li>
+      <li>The noise returns, and every house holds</li><li>Calm returns, with the logo and links to both sites</li>
     </ol>
     <p style="margin:16px 0 0;font-size:13px;color:var(--muted)">Press H or Esc to close.</p>
   </div>
@@ -102,7 +127,7 @@
   const TL_LAST = 15;          // last step of index_final.html (its LAST constant)
   const LAST = 10;             // last stage of this scene
   const NAMES = ['Dark','Calm','The noise picks up','Storm','Surge','Aftermath',
-                 'The storm eases','Reinforce','Rebuild','The noise returns','End'];
+                 'The storm eases','Reinforce','Rebuild','The noise returns','Closing card'];
 
   // Stage targets. I = wave intensity, bl = black screen, lt = lightning rate,
   // ms = storm mood, md = dawn mood, surge = water level rise
@@ -117,10 +142,11 @@
     {bl:0, I:.18, rain:0,   lt:0,   ms:.1,  md:1,   surge:0,   wind:.1},
     {bl:0, I:.18, rain:0,   lt:0,   ms:.05, md:1,   surge:0,   wind:.1},
     {bl:0, I:1.1, rain:.9,  lt:.55, ms:.9,  md:.35, surge:.55, wind:.95},
-    {bl:1, I:.3,  rain:0,   lt:0,   ms:.2,  md:1,   surge:0,   wind:.1}
+    {bl:0, I:.15, rain:0,   lt:0,   ms:0,   md:1,   surge:0,   wind:.08}
   ];
   const P = {...STAGES[0]};
   let T = STAGES[0];
+  let endT;
   let stage = 0, mode = 'scene', timelineDone = false, clock = 0;
   let manualBlack = false;
 
@@ -310,6 +336,9 @@
     if (s >= 8) houses.forEach(h => { if (h.orig === 'rotten' && h.bAt === null)
       h.bAt = Math.max(clock + mr(0,16), (h.fallAt ?? clock) + 5); });
     $('label').textContent = `${s} / ${LAST} · ${NAMES[s]}`;
+    clearTimeout(endT); const end = $('end');
+    if (s === LAST) endT = setTimeout(() => { end.classList.add('on'); end.setAttribute('aria-hidden', 'false'); }, 2500);
+    else { end.classList.remove('on'); end.setAttribute('aria-hidden', 'true'); }
     try { history.replaceState(null, '', s >= 6 || timelineDone ? '#rebuild' : location.pathname + location.search); } catch (e) {}
   }
 

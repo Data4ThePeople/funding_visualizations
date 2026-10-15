@@ -112,7 +112,7 @@ Each person is a house on stilts in open water. The house is their sense of what
 | 7 | Survivors get steel jackets and braces, and the rust comes off |
 | 8 | Fallen houses are rebuilt on steel, piling by piling |
 | 9 | The noise returns, and every house holds |
-| 10 | Fade to black |
+| 10 | Calm returns, and a card shows the logo with links to data4thepeople.com and labs.data4thepeople.com (they open in new tabs) |
 
 Collapses and repairs play out over 20 to 30 seconds inside a stage, so the scene keeps moving while you talk. Clicking ahead early makes any pending collapses happen within a few seconds.
 
