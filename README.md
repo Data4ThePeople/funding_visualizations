@@ -109,7 +109,7 @@ Each person is a house on stilts in open water. The house is their sense of what
 | 5 | Aftermath: the last rotten houses fall |
 | | **Timeline** (`output/index_final.html`) runs in a frame. Next on its last step returns to the scene. Back on its first step returns to stage 5. |
 | 6 | The storm eases toward dawn |
-| 7 | Survivors get steel jackets and braces, and the rust comes off |
+| 7 | Survivors are reinforced, with welding sparks at each step: bright steel sleeves climb every stilt, two new piles drive down from the deck, cross braces are welded in, and a shine runs up the finished steel. The three front houses go first. |
 | 8 | Fallen houses are rebuilt on steel, piling by piling |
 | 9 | The noise returns, and every house holds |
 | 10 | Calm returns, and a card shows the logo with links to data4thepeople.com and labs.data4thepeople.com (they open in new tabs) |

@@ -181,11 +181,11 @@
   const PAL = {
     steel: {body:['#C9CED3','#9FB3C3','#B7A28A','#8E9FA8','#D6D0C4'].map(hex), roof:['#4A525A','#3F4A55'].map(hex)},
     new:   {body:['#D9B98C','#C8A273','#A7C4C9','#E0D3B8','#BFA07A'].map(hex), roof:['#6B4F36','#55606A'].map(hex)},
-    rotten:{body:['#6E6656','#5F5A4C','#7A6D58','#565044'].map(hex), roof:['#3E3A33','#45403A'].map(hex)}
+    rotten:{body:['#958A74','#857D69','#A09079','#7D7462'].map(hex), roof:['#5E574C','#665E52'].map(hex)}
   };
-  const STEEL = hex('#7F8C98'), STEEL_D = hex('#5E6B76'), RUST = hex('#8B4A25'), WOOD = hex('#B98A55'),
-        GREY = hex('#76716A'), ROT = hex('#4A4033'), DARK = hex('#0B1016'), GAP = hex('#1D1A16'),
-        DECK_S = hex('#5D666E'), DECK_W = hex('#8D6A43'), DECK_R = hex('#3B342B'), FRAME = hex('#2A2F35'),
+  const NEWSTEEL = hex('#C8D3DD'), STEEL = hex('#7F8C98'), STEEL_D = hex('#5E6B76'), RUST = hex('#8B4A25'), WOOD = hex('#B98A55'),
+        GREY = hex('#76716A'), ROT = hex('#6E604C'), DARK = hex('#0B1016'), GAP = hex('#26221C'),
+        DECK_S = hex('#5D666E'), DECK_W = hex('#8D6A43'), DECK_R = hex('#564C3E'), FRAME = hex('#2A2F35'),
         WIN_ON = hex('#FFD27A'), WIN_OFF = hex('#1C2228'), WHITE = hex('#FFFFFF');
 
   // ---------- Houses ----------
@@ -321,6 +321,7 @@
       src.connect(fl); fl.connect(g); g.connect(this.master); src.start(t, Math.random()*2); src.stop(t + dur + .1);
     },
     thunder(){ const d = mr(.3,1.6); this.burst(3.8, 'lowpass', 150, .9, .08, d); this.burst(1.2, 'lowpass', 700, .25, .02, d); },
+    clank(s){ const k = Math.min(1, s); this.burst(.35, 'bandpass', 1800, .3*k, .003); this.burst(.5, 'lowpass', 400, .3*k, .005); },
     creak(s){ const k = Math.min(1, s); this.burst(1.1, 'bandpass', 260, .22*k, .3); this.burst(.9, 'bandpass', 520, .1*k, .2, .3); },
     snap(s){ const k = Math.min(1, s); this.burst(.25, 'highpass', 1400, .5*k, .005); this.burst(.6, 'lowpass', 300, .5*k, .01); },
     crash(s){ const k = Math.min(1, s); this.burst(1.6, 'bandpass', 900, .45*k, .01); this.burst(3, 'lowpass', 200, .75*k, .05); this.burst(2.2, 'highpass', 2500, .25*k, .1, .15); }
@@ -339,7 +340,8 @@
       if (h.type === 'new') h.wornT = Math.max(h.wornT, wear[0]);
       if (h.type === 'steel' && !h.rebuilt) h.rustT = Math.max(h.rustT, wear[1]);
     });
-    if (s >= 7) houses.forEach(h => { if (h.orig !== 'rotten' && h.rfAt === null) h.rfAt = clock + mr(0,10); });
+    if (s >= 7) houses.forEach((h, i) => { if (h.orig !== 'rotten' && h.rfAt === null)
+      h.rfAt = clock + (i === 2 ? .5 : i === 0 ? 2.5 : mr(2,16)); });
     if (s >= 8) houses.forEach(h => { if (h.orig === 'rotten' && h.bAt === null)
       h.bAt = Math.max(clock + mr(0,16), (h.fallAt ?? clock) + 5); });
     $('label').textContent = `${s} / ${LAST} · ${NAMES[s]}`;
@@ -380,7 +382,12 @@
           if (h.fp >= 1) h.gone = true;
         }
       }
-      if (h.rfAt !== null) h.rf = clamp((clock - h.rfAt)/5);
+      if (h.rfAt !== null){
+        h.rf = clamp((clock - h.rfAt)/9);
+        if (h.rf > 0 && !h.rfS1){ h.rfS1 = true; snd.clank(scl(h.z)); }
+        if (h.rf > .38 && !h.rfS2){ h.rfS2 = true; snd.clank(scl(h.z)); }
+        if (h.rf > .62 && !h.rfS3){ h.rfS3 = true; snd.clank(scl(h.z)); }
+      }
       if (h.bAt !== null && clock >= h.bAt){
         if (!h.rebuilt){ rebuildAsSteel(h); debris.forEach(d => { if (d.house === h) d.fadeAt = clock; }); }
         h.b = clamp((clock - h.bAt)/7);
@@ -583,12 +590,71 @@
       ctx.moveTo(sx(0), top + 6); ctx.lineTo(sx(1), top + h.sh*.45); ctx.stroke(); }
     else { ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(sx(0), top + h.sh*.35); ctx.lineTo(sx(1) - 4, top + h.sh*.5); ctx.stroke(); }
     ctx.globalAlpha = 1;
-    // Reinforcement: steel jackets climb the wood stilts, then steel braces go in
-    if (wood && h.rf > 0){
-      const j = clamp(rf/.6)*L; ctx.fillStyle = sh(STEEL);
-      for (let i = 0; i < ns; i++) ctx.fillRect(sx(i) - 5, BOT - j, 10, j);
-      const ba = clamp((rf - .55)/.45);
-      if (ba > 0){ ctx.globalAlpha = ba; ctx.strokeStyle = sh(STEEL_D); ctx.lineWidth = 2.6; xBraces(); ctx.globalAlpha = 1; }
+    // Reinforcement, in three steps, with welding sparks at each working point:
+    // new steel sleeves climb every stilt, two new piles drive down from the deck, then cross braces go in
+    if (h.rf > 0 && !h.rebuilt){
+      const q = h.rf, NS = sh(NEWSTEEL), EDGE = sh(STEEL_D), sparks = [];
+      const out = [-bw/2 - 4, bw/2 + 4];
+      // 1. Sleeves climb from the water to the deck
+      const jc = clamp(q/.4);
+      for (let i = 0; i < ns; i++){
+        const k = ease(clamp(jc*1.3 - i*.3/ns)), j = k*L;
+        if (j <= 0) continue;
+        ctx.fillStyle = NS; ctx.fillRect(sx(i) - 7, BOT - j, 14, j);
+        ctx.strokeStyle = EDGE; ctx.lineWidth = 1.4; ctx.strokeRect(sx(i) - 7, BOT - j, 14, j);
+        for (let y = BOT - 14; y > BOT - j; y -= 22){ ctx.beginPath(); ctx.moveTo(sx(i) - 7, y); ctx.lineTo(sx(i) + 7, y); ctx.stroke(); }
+        if (k > 0 && k < 1) sparks.push([sx(i), BOT - j]);
+      }
+      // 2. Two new piles drive down outside the old ones
+      const pc = clamp((q - .32)/.3);
+      if (pc > 0) out.forEach((x, n) => {
+        const k = ease(clamp(pc*1.25 - n*.25)), d = k*(L + 8);
+        if (d <= 0) return;
+        ctx.fillStyle = NS; ctx.fillRect(x - 8, top - 8, 16, d);
+        ctx.strokeStyle = EDGE; ctx.lineWidth = 1.6; ctx.strokeRect(x - 8, top - 8, 16, d);
+        if (k < 1) sparks.push([x, top - 8 + d]);
+      });
+      // 3. Cross braces, drawn out from one end like a weld bead
+      const bc = clamp((q - .58)/.32);
+      if (bc > 0){
+        const xs = [out[0], ...Array.from({length:ns}, (_, i) => sx(i)), out[1]];
+        const segs = [];
+        for (let i = 0; i < xs.length - 1; i++){ const a = xs[i], c = xs[i + 1], y1 = top + 4, y2 = top + h.sh*.66;
+          segs.push([a, y1, c, y2], [c, y1, a, y2]); }
+        segs.push([xs[0], top + h.sh*.66, xs[xs.length - 1], top + h.sh*.66]);
+        ctx.strokeStyle = NS; ctx.lineWidth = 4; ctx.lineCap = 'round';
+        const per = 1/segs.length;
+        segs.forEach(([x1, y1, x2, y2], i) => {
+          const k = clamp((bc - i*per*.6)/(per*1.8)); if (k <= 0) return;
+          const ex = x1 + (x2 - x1)*k, ey = y1 + (y2 - y1)*k;
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ex, ey); ctx.stroke();
+          if (k < 1) sparks.push([ex, ey]);
+        });
+        ctx.lineCap = 'butt';
+      }
+      // Finished: a quick shine runs up the new steel
+      const fin = clamp((q - .9)/.1);
+      if (fin > 0 && fin < 1){
+        ctx.globalCompositeOperation = 'lighter';
+        const y = BOT - fin*(L + 10), g = ctx.createLinearGradient(0, y - 30, 0, y + 30);
+        g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g; ctx.fillRect(-bw/2 - 14, y - 30, bw + 28, 60);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      // Welding sparks
+      if (sparks.length){
+        ctx.globalCompositeOperation = 'lighter';
+        sparks.forEach(([x, y]) => {
+          const fl = .75 + .25*Math.random(), g = ctx.createRadialGradient(x, y, 0, x, y, 26);
+          g.addColorStop(0, `rgba(255,245,220,${.95*fl})`); g.addColorStop(.25, `rgba(255,170,60,${.6*fl})`); g.addColorStop(1, 'rgba(255,120,30,0)');
+          ctx.fillStyle = g; ctx.fillRect(x - 26, y - 26, 52, 52);
+          ctx.strokeStyle = 'rgba(255,215,140,.9)'; ctx.lineWidth = 1.4; ctx.beginPath();
+          for (let n = 0; n < 7; n++){ const a = Math.random()*6.28, r1 = 3 + Math.random()*5, r2 = r1 + 6 + Math.random()*16;
+            ctx.moveTo(x + Math.cos(a)*r1, y + Math.sin(a)*r1); ctx.lineTo(x + Math.cos(a)*r2, y + Math.sin(a)*r2 + 4); }
+          ctx.stroke();
+        });
+        ctx.globalCompositeOperation = 'source-over';
+      }
     }
     // Deck
     ctx.globalAlpha = pb;
@@ -779,7 +845,7 @@
   requestAnimationFrame(loop);
   // For checks from the browser console
   window.scene = {get stage(){ return stage; }, get clock(){ return clock; }, get mode(){ return mode; },
-    next, prev, snd, fallen: () => houses.filter(h => h.gone).length,
+    next, prev, snd, houses, fallen: () => houses.filter(h => h.gone).length,
     tick(sec){ for (let t = 0; t < sec; t += 1/30) update(1/30); draw(); }};
 })();
 </script>
