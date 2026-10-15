@@ -110,7 +110,7 @@ Each person is a house on stilts in open water. The house is their sense of what
 | | **Timeline** (`output/index_final.html`) runs in a frame. Next on its last step returns to the scene. Back on its first step returns to stage 5. |
 | 6 | The storm eases toward dawn |
 | 7 | Survivors are reinforced, with welding sparks at each step: bright steel sleeves climb every stilt, two new piles drive down from the deck, cross braces are welded in, and a shine runs up the finished steel. The three front houses go first. |
-| 8 | Fallen houses are rebuilt on steel, piling by piling |
+| 8 | Fallen houses are rebuilt on steel over 12 seconds each: a dashed outline of the new house appears, steel stilts rise from the water and new piles drive down, braces are welded in, the deck slides in, the walls rise with sparks along the top edge, the roof drops into place, and the lights come on with a glow. The big front house goes first. |
 | 9 | The noise returns, and every house holds |
 | 10 | Calm returns, and a card shows the logo with links to data4thepeople.com and labs.data4thepeople.com (they open in new tabs) |
 

@@ -321,6 +321,7 @@
       src.connect(fl); fl.connect(g); g.connect(this.master); src.start(t, Math.random()*2); src.stop(t + dur + .1);
     },
     thunder(){ const d = mr(.3,1.6); this.burst(3.8, 'lowpass', 150, .9, .08, d); this.burst(1.2, 'lowpass', 700, .25, .02, d); },
+    thud(s){ const k = Math.min(1, s); this.burst(.6, 'lowpass', 180, .5*k, .005); this.burst(.3, 'bandpass', 900, .2*k, .003); },
     clank(s){ const k = Math.min(1, s); this.burst(.35, 'bandpass', 1800, .3*k, .003); this.burst(.5, 'lowpass', 400, .3*k, .005); },
     creak(s){ const k = Math.min(1, s); this.burst(1.1, 'bandpass', 260, .22*k, .3); this.burst(.9, 'bandpass', 520, .1*k, .2, .3); },
     snap(s){ const k = Math.min(1, s); this.burst(.25, 'highpass', 1400, .5*k, .005); this.burst(.6, 'lowpass', 300, .5*k, .01); },
@@ -342,8 +343,8 @@
     });
     if (s >= 7) houses.forEach((h, i) => { if (h.orig !== 'rotten' && h.rfAt === null)
       h.rfAt = clock + (i === 2 ? .5 : i === 0 ? 2.5 : mr(2,16)); });
-    if (s >= 8) houses.forEach(h => { if (h.orig === 'rotten' && h.bAt === null)
-      h.bAt = Math.max(clock + mr(0,16), (h.fallAt ?? clock) + 5); });
+    if (s >= 8) houses.forEach((h, i) => { if (h.orig === 'rotten' && h.bAt === null)
+      h.bAt = Math.max(clock + (i === 1 ? .5 : mr(3,18)), (h.fallAt ?? clock) + 5); });
     $('label').textContent = `${s} / ${LAST} · ${NAMES[s]}`;
     clearTimeout(endT); const end = $('end');
     if (s === LAST) endT = setTimeout(() => { end.classList.add('on'); end.setAttribute('aria-hidden', 'false'); }, 2500);
@@ -390,7 +391,9 @@
       }
       if (h.bAt !== null && clock >= h.bAt){
         if (!h.rebuilt){ rebuildAsSteel(h); debris.forEach(d => { if (d.house === h) d.fadeAt = clock; }); }
-        h.b = clamp((clock - h.bAt)/7);
+        h.b = clamp((clock - h.bAt)/12);
+        if (h.b > .62 && !h.bS1){ h.bS1 = true; snd.clank(scl(h.z)); }
+        if (h.b > .93 && !h.bS2){ h.bS2 = true; snd.thud(scl(h.z)); }
       }
     });
     for (let i = debris.length - 1; i >= 0; i--){
@@ -556,12 +559,31 @@
     if (falling){ const e = clock - h.fallAt; lt = e > 1.6 ? 0 : (Math.sin(e*29 + h.flick) > .2 ? lt : 0); }
     lt *= 1 - .55*P.md;
     // Build progress, for rebuilt houses
-    const b = h.b, sb = clamp(b/.3), pb = clamp((b - .28)/.12), bb = clamp((b - .4)/.32), rb = clamp((b - .72)/.18);
-    if (h.rebuilt) lt *= clamp((b - .92)/.08);
+    const b = h.b, R2 = h.rebuilt;
+    const sb = R2 ? 0 : 1, bp = R2 ? 0 : 1, pb = R2 ? clamp((b - .6)/.05) : 1,
+          bb = R2 ? clamp((b - .64)/.22) : 1, rb = R2 ? clamp((b - .86)/.07) : 1;
+    if (R2) lt *= clamp((b - .95)/.05);
+    const sparks = [];
 
     const bw = h.bw, top = -h.sh, BOT = 45, ns = h.ns, L = BOT - top;
     const sx = i => -bw/2 + 9 + i*(bw - 18)/(ns - 1);
     ctx.save(); ctx.translate(X + dx*s, Y + sink*s); ctx.scale(s, s); ctx.rotate(ang);
+
+    // A rebuilt house starts as a dashed outline of what is coming, which fills in as it is built
+    if (R2){
+      const ga = clamp(b/.05)*(1 - clamp((b - .86)/.1));
+      if (ga > 0){
+        ctx.save(); ctx.globalAlpha = ga*(.55 + .25*Math.sin(clock*4)); ctx.setLineDash([7, 6]);
+        ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        [-bw/2 - 4, ...Array.from({length:ns}, (_, i) => sx(i)), bw/2 + 4].forEach(x => { ctx.moveTo(x, 0); ctx.lineTo(x, top - 8); });
+        ctx.rect(-bw/2 - 7, top - 8, bw + 14, 8); ctx.rect(-bw/2, top - 8 - h.bh, bw, h.bh);
+        const e = bw/2 + 9, bt0 = top - 8 - h.bh;
+        if (h.roof === 'gable'){ ctx.moveTo(-e, bt0); ctx.lineTo(0, bt0 - h.rh); ctx.lineTo(e, bt0); }
+        else { ctx.moveTo(-e, bt0); ctx.lineTo(-bw*.22, bt0 - h.rh*.82); ctx.lineTo(bw*.22, bt0 - h.rh*.82); ctx.lineTo(e, bt0); }
+        ctx.stroke(); ctx.restore();
+      }
+    }
 
     // Stilts
     const stC = steel ? mix(STEEL, RUST, rust*.85) : wood ? mix(WOOD, GREY, worn*.75) : ROT;
@@ -572,7 +594,7 @@
       ctx.save(); ctx.translate(sx(i), top); ctx.rotate(h.jit[i] + (i === (h.dir > 0 ? ns - 1 : 0) ? kick : 0));
       if (i === h.brokenIdx){ ctx.beginPath(); ctx.moveTo(-sw/2, 0); ctx.lineTo(sw/2, 0); ctx.lineTo(sw/2, L*.42);
         ctx.lineTo(0, L*.48); ctx.lineTo(-sw/2, L*.4); ctx.closePath(); ctx.fill(); }
-      else ctx.fillRect(-sw/2, L - L*sb, sw, L*sb);
+      else if (sb) ctx.fillRect(-sw/2, 0, sw, L);
       ctx.restore();
     }
     if (wood && worn > .45){
@@ -584,7 +606,7 @@
       for (let i = 0; i < ns - 1; i++){ const a = sx(i), c = sx(i + 1), y1 = top + 8, y2 = top + h.sh*.62;
         ctx.moveTo(a, y1); ctx.lineTo(c, y2); ctx.moveTo(c, y1); ctx.lineTo(a, y2); }
       ctx.moveTo(sx(0), top + h.sh*.62); ctx.lineTo(sx(ns - 1), top + h.sh*.62); ctx.stroke(); };
-    ctx.globalAlpha = pb; ctx.strokeStyle = sh(brC);
+    ctx.globalAlpha = bp; ctx.strokeStyle = sh(brC);
     if (steel){ ctx.lineWidth = 2.6; xBraces(); }
     else if (wood){ ctx.lineWidth = 3.2; ctx.beginPath(); ctx.moveTo(sx(0), top + h.sh*.45); ctx.lineTo(sx(ns - 1), top + h.sh*.45);
       ctx.moveTo(sx(0), top + 6); ctx.lineTo(sx(1), top + h.sh*.45); ctx.stroke(); }
@@ -592,8 +614,8 @@
     ctx.globalAlpha = 1;
     // Reinforcement, in three steps, with welding sparks at each working point:
     // new steel sleeves climb every stilt, two new piles drive down from the deck, then cross braces go in
-    if (h.rf > 0 && !h.rebuilt){
-      const q = h.rf, NS = sh(NEWSTEEL), EDGE = sh(STEEL_D), sparks = [];
+    if (R2 || h.rf > 0){
+      const q = R2 ? clamp(b/.6) : h.rf, NS = sh(NEWSTEEL), EDGE = sh(STEEL_D);
       const out = [-bw/2 - 4, bw/2 + 4];
       // 1. Sleeves climb from the water to the deck
       const jc = clamp(q/.4);
@@ -641,32 +663,21 @@
         ctx.fillStyle = g; ctx.fillRect(-bw/2 - 14, y - 30, bw + 28, 60);
         ctx.globalCompositeOperation = 'source-over';
       }
-      // Welding sparks
-      if (sparks.length){
-        ctx.globalCompositeOperation = 'lighter';
-        sparks.forEach(([x, y]) => {
-          const fl = .75 + .25*Math.random(), g = ctx.createRadialGradient(x, y, 0, x, y, 26);
-          g.addColorStop(0, `rgba(255,245,220,${.95*fl})`); g.addColorStop(.25, `rgba(255,170,60,${.6*fl})`); g.addColorStop(1, 'rgba(255,120,30,0)');
-          ctx.fillStyle = g; ctx.fillRect(x - 26, y - 26, 52, 52);
-          ctx.strokeStyle = 'rgba(255,215,140,.9)'; ctx.lineWidth = 1.4; ctx.beginPath();
-          for (let n = 0; n < 7; n++){ const a = Math.random()*6.28, r1 = 3 + Math.random()*5, r2 = r1 + 6 + Math.random()*16;
-            ctx.moveTo(x + Math.cos(a)*r1, y + Math.sin(a)*r1); ctx.lineTo(x + Math.cos(a)*r2, y + Math.sin(a)*r2 + 4); }
-          ctx.stroke();
-        });
-        ctx.globalCompositeOperation = 'source-over';
-      }
     }
-    // Deck
+    // Deck (a rebuilt deck slides in from the side)
     ctx.globalAlpha = pb;
     ctx.fillStyle = sh(steel ? DECK_S : wood ? mix(DECK_W, GREY, worn*.6) : DECK_R);
-    ctx.fillRect(-bw/2 - 7, top - 8, bw + 14, 8);
+    const dk = R2 ? -h.dir*(1 - ease(pb))*60 : 0;
+    ctx.fillRect(-bw/2 - 7 + dk, top - 8, bw + 14, 8);
+    if (R2 && pb > 0 && pb < 1) sparks.push([-bw/2 + dk, top - 6], [bw/2 + dk, top - 6]);
     ctx.globalAlpha = 1;
 
     // Walls
     const bt = top - 8 - h.bh;
     if (bb > 0){
       ctx.save();
-      if (bb < 1){ ctx.beginPath(); ctx.rect(-bw, top - 8 - h.bh*bb, bw*2, h.bh*bb + 1); ctx.clip(); }
+      if (bb < 1){ ctx.beginPath(); ctx.rect(-bw, top - 8 - h.bh*bb, bw*2, h.bh*bb + 1); ctx.clip();
+        const ye = top - 8 - h.bh*bb; sparks.push([-bw/2, ye], [bw/2, ye], [(Math.sin(clock*3)*.45)*bw, ye]); }
       let bc = h.bodyC; if (steel) bc = mix(bc, RUST, rust*.22); if (wood) bc = mix(bc, GREY, worn*.6);
       ctx.fillStyle = sh(bc); ctx.fillRect(-bw/2, bt, bw, h.bh);
       ctx.strokeStyle = 'rgba(0,0,0,.14)'; ctx.lineWidth = 1; ctx.beginPath();
@@ -703,7 +714,8 @@
     if (rb > 0){
       ctx.save(); ctx.translate(0, bt);
       if (roofOff){ ctx.translate(h.dir*roofOff*90, -Math.sin(roofOff*Math.PI)*40 + roofOff*roofOff*60); ctx.rotate(h.dir*roofOff*1.1); }
-      ctx.scale(1, rb);
+      if (R2 && rb < 1){ const k = rb*rb; ctx.translate(0, -(1 - k)*90); ctx.globalAlpha = clamp(rb*3); }
+      else if (!R2) ctx.scale(1, rb);
       let rc = h.roofC; if (steel) rc = mix(rc, RUST, rust*.45); if (wood) rc = mix(rc, GREY, worn*.5);
       const e = bw/2 + 9, rh = h.rh;
       ctx.fillStyle = sh(rc); ctx.beginPath();
@@ -717,6 +729,30 @@
       ctx.fillStyle = sh(GAP);
       for (let i = 0; i < holes; i++){ const o = h.holes[i]; ctx.fillRect(o.x*e*(1 - o.y) - 4, -rh*o.y - 3, 8, 5); }
       ctx.restore();
+    }
+    if (R2){
+      const pulse = clamp((b - .93)/.04)*(1 - clamp((b - .97)/.03));
+      if (pulse > 0){
+        ctx.globalCompositeOperation = 'lighter';
+        const cy = top - 8 - h.bh*.5, g = ctx.createRadialGradient(0, cy, 0, 0, cy, bw*1.1);
+        g.addColorStop(0, `rgba(255,220,150,${.55*pulse})`); g.addColorStop(1, 'rgba(255,220,150,0)');
+        ctx.fillStyle = g; ctx.fillRect(-bw*1.1, cy - bw*1.1, bw*2.2, bw*2.2);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    }
+    // Welding sparks
+    if (sparks.length){
+      ctx.globalCompositeOperation = 'lighter';
+      sparks.forEach(([x, y]) => {
+        const fl = .75 + .25*Math.random(), g = ctx.createRadialGradient(x, y, 0, x, y, 26);
+        g.addColorStop(0, `rgba(255,245,220,${.95*fl})`); g.addColorStop(.25, `rgba(255,170,60,${.6*fl})`); g.addColorStop(1, 'rgba(255,120,30,0)');
+        ctx.fillStyle = g; ctx.fillRect(x - 26, y - 26, 52, 52);
+        ctx.strokeStyle = 'rgba(255,215,140,.9)'; ctx.lineWidth = 1.4; ctx.beginPath();
+        for (let n = 0; n < 7; n++){ const a = Math.random()*6.28, r1 = 3 + Math.random()*5, r2 = r1 + 6 + Math.random()*16;
+          ctx.moveTo(x + Math.cos(a)*r1, y + Math.sin(a)*r1); ctx.lineTo(x + Math.cos(a)*r2, y + Math.sin(a)*r2 + 4); }
+        ctx.stroke();
+      });
+      ctx.globalCompositeOperation = 'source-over';
     }
     ctx.restore();
   }
