@@ -91,6 +91,41 @@ GitHub Pages is free for public repositories; private repositories need a paid p
 
 **External requests:** the page loads the fonts Newsreader and Public Sans from Google Fonts, with fallbacks if they're unavailable. Everything else is built into the file.
 
+## Talk version: Houses in the Storm
+
+`talk/index.html` is a presenter's scene for live talks. It opens with an analogy, hands off to the timeline, and comes back for the close.
+
+Each person is a house on stilts in open water. The house is their sense of what is real, and the water is the noise. Houses built on rotting wood fall as the storm grows, new wood wears down, and steel rusts but stands. After the timeline, the survivors are reinforced and the fallen houses are rebuilt on steel.
+
+**Address:** `https://data4thepeople.github.io/funding_visualizations/talk/`
+
+| Stage | What happens |
+|-------|--------------|
+| 0 | Dark screen |
+| 1 | Calm water, about 40 houses |
+| 2 | The noise picks up: wind, rain, choppy water |
+| 3 | Storm: the first rotten houses fall |
+| 4 | Surge: the water rises, most rotten houses fall (the large one in front falls about 10 seconds in), new wood wears, steel rusts |
+| 5 | Aftermath: the last rotten houses fall |
+| | **Timeline** (`output/index_final.html`) runs in a frame. Next on its last step returns to the scene. Back on its first step returns to stage 5. |
+| 6 | The storm eases toward dawn |
+| 7 | Survivors get steel jackets and braces, and the rust comes off |
+| 8 | Fallen houses are rebuilt on steel, piling by piling |
+| 9 | The noise returns, and every house holds |
+| 10 | Fade to black |
+
+Collapses and repairs play out over 20 to 30 seconds inside a stage, so the scene keeps moving while you talk. Clicking ahead early makes any pending collapses happen within a few seconds.
+
+**Controls:** → ↓ Space, Page Down, Enter, or click for next; ← ↑ Page Up for back; F full screen; M sound; B or . black screen; R start over; H help. Clickers that send arrow or Page Down keys work throughout, including inside the timeline.
+
+**Rehearsing:** add `#rebuild` to the address to start at the aftermath, as if the timeline is done. Add `?speed=4` to run the scene four times faster.
+
+**Sound** is made in the browser, so there are no audio files. It starts after the first click or key press.
+
+**Offline:** serve the repository (`python3 -m http.server 8741`) and open `http://localhost:8741/talk/`. Opened straight from disk, the scene still runs, but the clicker cannot hand back from the timeline, so use the **Back to the houses** button in the lower left instead.
+
+`talk/image-prompt.md` has an optional AI image prompt for a realistic title still.
+
 ## Layout checks
 
 The `output/checks/` folder holds three small test pages. They load `index_final.html` in a frame, step through it, and measure where the card, the icon, and the buttons land. They are development tools only; the visualization does not need them to run or deploy.
